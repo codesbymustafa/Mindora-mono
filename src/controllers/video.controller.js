@@ -16,8 +16,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
     query,
     sortBy = "createdAt",
     sortType = "desc",
-    userId,
   } = req.query;
+
+  const userId = req.user._id
 
   if (! (await User.findById(userId))) {
     throw new ApiError(400, "Invalid userId");
@@ -113,12 +114,16 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
+  const userId = req.user._id
   // TODO: get video, upload to cloudinary, create video
 //   console.log("DEBUG req.files:", req.files);
 //   console.log("DEBUG req.body:", req.body);
 
   if (!title) throw new ApiError(400, "Title is required");
   if (!description) throw new ApiError(400, "Description is required");
+  if(! (await User.findById(userId))){
+      throw new ApiError(400, "Invalid userId");
+    }
 
   let videoFile;
   let thumbnail;
@@ -167,7 +172,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
       title,
       description,
       duration : uploadedVideo.duration || 0,
-      owner: req.user._id,
+      owner: userId,
     });
 
     const createdVideo = await Video.findById(newVideo._id);

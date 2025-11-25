@@ -7,7 +7,8 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 const createTweet = asyncHandler(async (req, res) => {
     //TODO: create tweet
-    const {userId , content } = req.body 
+    const {content } = req.body 
+    const userId = req.user._id;
 
     if(!(await User.findById(userId))){
         throw new ApiError(404, "User not found")
@@ -48,7 +49,8 @@ const getUserTweets = asyncHandler(async (req, res) => {
 const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
     const {tweetId} = req.params
-    const {content , userId} = req.body
+    const {content } = req.body
+    const userId = req.user._id
 
     const tweet = await Tweet.findById(tweetId);
     
@@ -60,7 +62,7 @@ const updateTweet = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found")
     }
 
-    if(tweet.owner.toString() !== userId){
+    if(tweet.owner.equals(userId) === false){
         throw new ApiError(403, "You are not authorized to update this tweet")
     }
 
@@ -82,7 +84,7 @@ const updateTweet = asyncHandler(async (req, res) => {
 const deleteTweet = asyncHandler(async (req, res) => {
     //TODO: delete tweet
     const {tweetId} = req.params
-    const {userId} = req.body
+    const userId = req.user._id
 
     const tweet = await Tweet.findById(tweetId);
     
@@ -94,7 +96,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found")
     }
     
-    if(tweet.owner.toString() !== userId){
+    if(tweet.owner.equals(userId) === false){
         throw new ApiError(403, "You are not authorized to delete this tweet")
     }
 

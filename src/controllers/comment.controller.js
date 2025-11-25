@@ -8,7 +8,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   //TODO: get all comments for a video
-  const { videoId } = req.params;
+  const { videoId } = req.params.toString();
   if (!Video.findById(videoId)) {
     // return res.status(400).json({ message: "Invalid videoId" });
     throw new ApiError(400, "Invalid videoId");
@@ -67,8 +67,8 @@ const addComment = asyncHandler(async (req, res) => {
   // TODO: add a comment to a video
 
   const { videoId } = req.params;
-
-  const { content, userId } = req.body;
+  const userId = req.user._id;
+  const { content } = req.body;
 
   if (!(await Video.findById(videoId))) {
     // return res.status(400).json({ message: "Invalid videoId" });
