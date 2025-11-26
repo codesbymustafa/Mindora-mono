@@ -48,7 +48,7 @@ const registerUser = asyncHandler(async (req , res) => {
     const avatarPath = req.files?.avatar?.[0].path;
     const coverImagePath = req.files?.coverImage?.[0].path;
 
-    let avatar;
+    let avatar = {};
     
     if(avatarPath){
         try {
@@ -61,7 +61,7 @@ const registerUser = asyncHandler(async (req , res) => {
     }
     
 
-    let coverImage ;
+    let coverImage = {};
 
     if(coverImagePath){
         
@@ -79,7 +79,7 @@ const registerUser = asyncHandler(async (req , res) => {
             fullName,
             username : username.toLowerCase(),
             email,
-            avatar: avatar.url,
+            avatar: avatar?.url,
             coverImage: coverImage?.url||"",
             password,
         })
@@ -93,8 +93,14 @@ const registerUser = asyncHandler(async (req , res) => {
         return res.status(201).json(new ApiResponse(201 , "User created successfully" , createdUser))
     
     } catch (error) {
-        if(avatar)deleteFromCloudinary(avatar.public_id);
-        if(coverImage)deleteFromCloudinary(coverImage.public_id);
+        if(avatar){
+            deleteFromCloudinary(avatar.public_id);
+            console.log("deleted avatar from cloudinary");
+        }
+        if(coverImage){
+            deleteFromCloudinary(coverImage.public_id);
+            console.log("deleted cover image from cloudinary");
+        }
 
         console.error("Error creating user", error);
         throw new ApiError(500 , "User creation failed")
