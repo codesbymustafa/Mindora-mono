@@ -20,10 +20,12 @@ const videoSchema = new Schema(
             type: String,
             required: true,
         },
-        views : {
-            type : Number,
-            default: 0,
-        },
+        views : [
+            {
+                type : Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ],
         duration : {
             type: Number,
             required: true,

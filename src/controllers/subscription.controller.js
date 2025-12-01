@@ -4,6 +4,7 @@ import { Subscription } from "../models/subscription.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { Notification } from "../models/notification.model.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   // TODO: toggle subscription
@@ -29,7 +30,10 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .json(new ApiResponse(200, "Unsubscribed successfully"));
+      .json(new ApiResponse(200, {
+        subscriberId: userId,
+        channelId: channelId
+      } , "Unsubscribed Successful"));
   } else {
     // subscribe
     const newSubscription = await Subscription.create({
@@ -39,25 +43,27 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
     await newSubscription.save();
 
+    // const videoInfo = await Video.findById(videoId);
+
+    await Notification.create({
+      recipient: channelId ,
+      sender: userId,
+      type: "NEW_SUBSCRIBER",
+      message: `Someone just subscribed to your channel.`,
+    })
+
     return res
       .status(201)
-      .json(new ApiResponse(201, "Subscribed successfully"));
+      .json(new ApiResponse(201, newSubscription ,  "Subscribed successfully"));
   }
 });
 
 // controller to return subscriber list of a channel
 const getChannelSubscribers = asyncHandler(async (req, res) => {
-  const { channelId } = req.params;
+  const channelId = req.user._id;
 
   if (!(await User.findById(channelId))) {
     throw new ApiError(404, "Channel not found");
-  }
-
-  if (channelId !== req.user._id.toString()) {
-    throw new ApiError(
-      403,
-      "Access denied. You can only view your own channel subscribers."
-    );
   }
 
   const subscribers = await Subscription.aggregate([
@@ -74,7 +80,8 @@ const getChannelSubscribers = asyncHandler(async (req, res) => {
     {
       $project: {
         _id: 0 ,
-        name: "$subscriberInfo.username",
+        username: "$subscriberInfo.username",
+        fullName: "$subscriberInfo.fullName",
         email: "$subscriberInfo.email",
         avatar: "$subscriberInfo.avatar",
         subscribedAt: "$createdAt",
@@ -84,16 +91,16 @@ const getChannelSubscribers = asyncHandler(async (req, res) => {
   ]);
 
   return res.status(200).json(
-    new ApiResponse(200, "Channel subscribers fetched successfully", {
+    new ApiResponse(200, {
       totalSubscribers: subscribers.length,
       subscribers,
-    })
+    }, "Channel subscribers fetched successfully")
   );
 });
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-  const { subscriberId } = req.params;
+  const subscriberId = req.user._id;
 
   if (!(await User.findById(subscriberId))) {
     throw new ApiError(404, "User not found");
@@ -127,10 +134,10 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   ]);
 
   return res.status(200).json(
-    new ApiResponse(200, "Subscribed channels fetched successfully", {
+    new ApiResponse(200, {
       totalSubscriptions: subscriptions.length,
       subscriptions,
-    })
+    }, "Subscribed channels fetched successfully")
   );
 });
 

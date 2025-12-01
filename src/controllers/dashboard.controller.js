@@ -6,6 +6,7 @@ import {Like} from "../models/like.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import { Comment } from "../models/comment.model.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
@@ -20,11 +21,27 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
     //total views count
     const totalViewsAggregation = await Video.aggregate([
-        { $match: { owner: new mongoose.Types.ObjectId(channelId) } },
-        { $group: { _id: null, totalViews: { $sum: "$views" } } }
+
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(channelId)
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalViews: {
+                    $sum: {
+                        $size: {
+                            $ifNull: [ "$views", [] ]
+                        }
+                    }
+                }
+            }
+        }
     ]);
 
-    const totalViewsCount = totalViewsAggregation.length > 0 ? totalViewsAggregation[0].totalViews : 0;
+    const totalViewsGotCount = totalViewsAggregation.length > 0 ? totalViewsAggregation[0].totalViews : 0;
 
     //total likes count
     const totalLikesAggregation = await Like.aggregate([
@@ -41,16 +58,33 @@ const getChannelStats = asyncHandler(async (req, res) => {
         { $group: { _id: null, totalLikes: { $sum: 1 } } }
     ]);
 
-    const totalLikesCount = totalLikesAggregation.length > 0 ? totalLikesAggregation[0].totalLikes : 0;
+    const totalLikesGotCount = totalLikesAggregation.length > 0 ? totalLikesAggregation[0].totalLikes : 0;
+
+    const totalCommentsAggregated = await Comment.aggregate([
+        {
+            $lookup: {
+                from: "videos",
+                localField: "video",
+                foreignField: "_id",
+                as: "videoDetails"
+            }
+        },
+        { $unwind: "$videoDetails" },
+        { $match: { "videoDetails.owner": new mongoose.Types.ObjectId(channelId) } },
+        { $group: { _id: null, totalComments: { $sum: 1 } } }
+    ]);
+
+    const totalCommentsGotCount =  totalCommentsAggregated.length > 0 ? totalCommentsAggregated[0].totalComments : 0
 
     const stats = {
         subscribersCount,
         totalVideosCount,
-        totalViewsCount,
-        totalLikesCount
+        totalViewsGotCount,
+        totalLikesGotCount,
+        totalCommentsGotCount
     };
 
-    res.status(200).json(new ApiResponse(200, "Channel stats fetched successfully", stats));
+    res.status(200).json(new ApiResponse(200, stats, "Channel stats fetched successfully"));
 
 })
 
@@ -68,7 +102,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 
     const videos = await Video.find({ owner: channelId }).sort({ createdAt: -1 });
 
-    res.status(200).json(new ApiResponse(200, "Channel videos fetched successfully", videos));
+    res.status(200).json(new ApiResponse(200, videos, "Channel videos fetched successfully"));
 })
 
 export {

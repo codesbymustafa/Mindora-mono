@@ -4,6 +4,7 @@ import {
   getCurrentUser,
   getUserChannelProfile,
   getWatchHistory,
+  addToWatchHistory,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -11,6 +12,9 @@ import {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  toggleTheme,
+  getTheme,
+  getUserById
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -70,7 +74,20 @@ router
 //     getUserChannelProfile,
 router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
+//    getUserById
+router.route("/u/:userId").get(verifyJWT, getUserById);
+
 //     getWatchHistory
-router.route("history").get(verifyJWT, getWatchHistory);
+router.route("/history")
+.get(verifyJWT, getWatchHistory)
+
+router.route("/history/add/:videoId")
+  .patch(verifyJWT, addToWatchHistory);
+
+//     toggleTheme
+router.route("/theme")
+  .get(verifyJWT, getTheme)
+  .patch(verifyJWT, toggleTheme);
+
 
 export default router;

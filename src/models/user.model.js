@@ -45,8 +45,11 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String
+        },
+        prefferedTheme: {
+            type: String,
+            default: "light"
         }
-
     },
     {
         timestamps: true

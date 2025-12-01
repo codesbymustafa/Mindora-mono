@@ -2,7 +2,12 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import {ApiError} from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
+import { Video } from "../models/video.model.js";
 import { deleteFromCloudinary, uploadToCloudinary } from "../utils/cloudinary.js";
+import mongoose, { isValidObjectId } from "mongoose";
+import jwt from "jsonwebtoken";
+import logger from "../utils/logger.js";
+import fs from "fs";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -40,20 +45,23 @@ const registerUser = asyncHandler(async (req , res) => {
         $or: [{username} , {email}]
     })
 
+    const avatarPath = req.files?.avatar?.[0].path;
+    const coverImagePath = req.files?.coverImage?.[0].path;
+
     if(existedUser){
+        if( avatarPath )fs.unlinkSync(avatarPath)
+        if( coverImagePath ) fs.unlinkSync(coverImagePath)
         throw new ApiError(409 , "User already exists")
     }
     console.warn("files " , req.files);
 
-    const avatarPath = req.files?.avatar?.[0].path;
-    const coverImagePath = req.files?.coverImage?.[0].path;
 
     let avatar = {};
     
     if(avatarPath){
         try {
             avatar = await uploadToCloudinary(avatarPath);
-            console.log("avatar uploaded" , avatar);
+            logger.info("avatar uploaded" , avatar);
         } catch (error) {
             console.error("Error uploading avatar to Cloudinary", error);
             throw new ApiError(500 , "Error uploading avatar");
@@ -67,7 +75,7 @@ const registerUser = asyncHandler(async (req , res) => {
         
         try {
             coverImage = await uploadToCloudinary(coverImagePath);
-            console.log("coverImage uploaded" , coverImage);
+            logger.info("coverImage uploaded" , coverImage);
         } catch (error) {
             console.error("Error uploading cover image to Cloudinary", error);
         }
@@ -90,16 +98,16 @@ const registerUser = asyncHandler(async (req , res) => {
             throw new ApiError(500 , "User creation failed")
         }
     
-        return res.status(201).json(new ApiResponse(201 , "User created successfully" , createdUser))
+        return res.status(201).json(new ApiResponse(201, createdUser , "User created successfully" ))
     
     } catch (error) {
         if(avatar){
             deleteFromCloudinary(avatar.public_id);
-            console.log("deleted avatar from cloudinary");
+            logger.info("deleted avatar from cloudinary");
         }
         if(coverImage){
             deleteFromCloudinary(coverImage.public_id);
-            console.log("deleted cover image from cloudinary");
+            logger.info("deleted cover image from cloudinary");
         }
 
         console.error("Error creating user", error);
@@ -146,14 +154,16 @@ const loginUser = asyncHandler(async (req , res) => {
         .cookie("accessToken" , accessToken , options)
         .cookie("refreshToken" , refreshToken , options)
         .json(new ApiResponse(
-            200 ,
-            {
-                user : loggedInUser,
-                accessToken,
-                refreshToken
-            
-            } ,
-            "Login successful"))
+                200 ,
+                {
+                    user : loggedInUser,
+                    accessToken,
+                    refreshToken
+                
+                } ,
+                "Login successful"
+            )
+        )
 
     
 }) 
@@ -198,13 +208,13 @@ const refreshAccessToken = asyncHandler(async (req , res) => {
             throw new ApiError(401 , "Invalid refresh token")
         }
     
-        const user = await User.findById(decoded._id);
+        const user = await User.findById(decoded._id).select("-password");
     
         if(!user || user.refreshToken !== incomingRefreshToken){
             throw new ApiError(401 , "Refresh token invalid or expired")
         }
     
-        options = {
+        const options = {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
         }
@@ -214,12 +224,12 @@ const refreshAccessToken = asyncHandler(async (req , res) => {
         return res
             .status(200)
             .cookie("accessToken" , accessToken , options)
-            .cookie("refreshToken" , refreshToken , options)
+            .cookie("refreshToken" , newRefreshToken , options)
             .json(new ApiResponse(
                     200 ,
                     {
                         accessToken,
-                        refreshToken,
+                        newRefreshToken,
                         user
                     } ,
                     "Token refreshed successfully"
@@ -274,6 +284,14 @@ const updateAccountDetails = asyncHandler(async (req , res) => {
 
     if(!fullName || !email){
         throw new ApiError(400 , "All fields are required")
+    }
+
+    const existedUser = await User.findOne({
+        $or: [{email}]
+    , _id: { $ne: req.user._id }}) // exclude current user
+
+    if(existedUser){
+        throw new ApiError(409 , "Email already in use by another account")
     }
 
     const newUser = await User.findByIdAndUpdate(
@@ -482,6 +500,11 @@ const getWatchHistory = asyncHandler(async (req , res) => {
                             owner:{
                                 $first: "$owner"
                             }
+                        },                        
+                    },
+                    {
+                        $addFields: {
+                            views: { $size: { $ifNull: ["$views", []] } }
                         }
                     }
                 ]
@@ -500,6 +523,81 @@ const getWatchHistory = asyncHandler(async (req , res) => {
     )
 })
 
+const addToWatchHistory = asyncHandler(async (req , res) => {
+    const { videoId } = req.params;
+
+    if(!mongoose.Types.ObjectId.isValid(videoId)){
+        throw new ApiError(400 , "Video ID is required")
+    }
+
+    if(!(await Video.findById(videoId))){
+        throw new ApiError(404 , "Video not found")
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if(!user){
+        throw new ApiError(404 , "User not found")
+    }
+
+    //remove videoId if already exists
+    user.watchHistory = user.watchHistory.filter(
+        (id) => id.toString() !== videoId
+    );
+
+    //add videoId to the beginning
+    user.watchHistory.unshift(videoId);
+
+    await user.save({validateBeforeSave: false});
+
+    logger.info("Updated watch history: ", user.watchHistory);
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, {}, "Video added to watch history successfully")
+    )
+
+})
+
+const toggleTheme = asyncHandler(async (req , res) => {
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                prefferedTheme: req.user.prefferedTheme === "light" ? "dark" : "light"
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken");
+
+    if(!user){
+        throw new ApiError(500 , "Could not toggle theme")
+    }
+    
+    return res.status(200).json(new ApiResponse(200 , {prefferedTheme: user.prefferedTheme} , "Theme toggled successfully"))
+})
+
+const getTheme = asyncHandler(async (req , res) => {
+    return res.status(200).json(new ApiResponse(200 , {prefferedTheme: req.user.prefferedTheme} , "Theme fetched successfully"))
+})
+
+const getUserById = asyncHandler(async (req , res) => {
+    const {userId} = req.params;
+
+    if(!isValidObjectId(userId)){
+        throw new ApiError(400 , "Invalid user ID")
+    }
+    const user = await User.findById(userId).select("username fullName avatar coverImage");
+    if(!user){
+        throw new ApiError(404 , "User not found")
+    }
+    return res.status(200).json(new ApiResponse(200 ,user , "User fetched successfully"))
+})
+
 export {
 
     registerUser ,
@@ -512,6 +610,10 @@ export {
     updateUserCoverImage ,
     refreshAccessToken,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    addToWatchHistory,
+    toggleTheme,
+    getTheme,
+    getUserById
 
 };
