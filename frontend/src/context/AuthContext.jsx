@@ -1,129 +1,199 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'));
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [accessToken, setAccessToken] = useState(
+        localStorage.getItem("accessToken")
+    );
+    const [theme, setTheme] = useState("light");
 
-  const api = axios.create({
-    baseURL: '/api/v1',
-  });
+    const apiRef = useRef(null);
+    if (!apiRef.current) {
+        apiRef.current = axios.create({ baseURL: "/api/v1" });
+        apiRef.current.interceptors.request.use((config) => {
+            const token = localStorage.getItem("accessToken"); // Always fresh
+            if (token) config.headers.Authorization = `Bearer ${token}`;
+            return config;
+        });
+    }
+    const api = apiRef.current;
 
-  // Interceptor to add token to requests
-  api.interceptors.request.use(
-    (config) => {
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (accessToken) {
-        try {
-          const response = await api.get('/users/current-user');
-          setUser(response.data.data); // Assuming response structure { data: user }
-        } catch (error) {
-          console.error("Auth check failed", error);
-          setAccessToken(null);
-          localStorage.removeItem('accessToken');
-          setUser(null);
+    useEffect(() => {
+        // Initial Theme Check
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+            setTheme(savedTheme);
+            document.documentElement.classList.toggle(
+                "dark",
+                savedTheme === "dark"
+            );
+        } else {
+            setTheme("light");
+            document.documentElement.classList.remove("dark");
         }
-      }
-      setLoading(false);
+    }, []);
+
+    const fetchCurrentUser = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get("/users/current-user");
+            setUser(response.data.data);
+
+            // Fetch theme preference
+            try {
+                const themeRes = await api.get("/users/theme");
+                const isDark = themeRes.data.data.prefferedTheme === "dark"; // Fix typo to match API
+                const newTheme = isDark ? "dark" : "light";
+                setTheme(newTheme);
+                localStorage.setItem("theme", newTheme);
+                document.documentElement.classList.toggle(
+                    "dark",
+                    newTheme === "dark"
+                );
+            } catch (e) {
+                console.log("Error fetching theme", e);
+            }
+        } catch (error) {
+            console.error("Auth check failed", error);
+            setAccessToken(null);
+            localStorage.removeItem("accessToken");
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    checkAuth();
-  }, [accessToken]);
+    useEffect(() => {
+        if (accessToken) {
+            fetchCurrentUser();
+        } else {
+            setLoading(false);
+        }
+    }, [accessToken]);
 
-  const login = async (data) => {
-    try {
-      const response = await api.post('/users/login', data);
-      const { accessToken: newAccessToken, user: userData } = response.data.data;
-      setAccessToken(newAccessToken);
-      localStorage.setItem('accessToken', newAccessToken);
-      setUser(userData);
-      toast.success('Logged in successfully');
-      return true;
-    } catch (error) {
-      console.error("Login error", error);
-      toast.error(error.response?.data?.message || 'Login failed');
-      return false;
-    }
-  };
+    const toggleTheme = async () => {
+        const currentTheme = theme;
+        const newTheme = currentTheme === "light" ? "dark" : "light";
 
-  const register = async (formData) => {
-    try {
-      // Register usually doesn't return token immediately in some flows, but if it does:
-      // For now assuming it just registers and user needs to login, or returns same as login
-      // Based on typical flows. If it logs in automatically:
-      const response = await api.post('/users/register', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      toast.success('Registration successful! Please login.');
-      return true;
-    } catch (error) {
-      console.error("Register error", error);
-      toast.error(error.response?.data?.message || 'Registration failed');
-      return false;
-    }
-  };
+        // Optimistic Update
+        setTheme(newTheme);
+        localStorage.setItem("theme", newTheme);
+        document.documentElement.classList.toggle("dark", newTheme === "dark");
 
-  const logout = async () => {
-    try {
-      // Optional: Call logout endpoint if exists
-      // await api.post('/users/logout'); 
-    } catch (error) {
-      console.error("Logout error", error);
-    } finally {
-      setAccessToken(null);
-      localStorage.removeItem('accessToken');
-      setUser(null);
-      toast.success('Logged out');
-    }
-  };
+        try {
+            await api.patch("/users/theme");
+        } catch (error) {
+            console.error("Error syncing theme with backend", error);
+            // Optional: Revert if sync is critical, but for theme it's usually fine to keep local preference
+            // toast.error("Failed to sync theme preference");
+        }
+    };
 
-  const updateCoverImage = async (file) => {
-    try {
-        const formData = new FormData();
-        formData.append('coverImage', file);
-        const response = await api.patch('/users/cover-image', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+    const login = async (data) => {
+        try {
+            const response = await api.post("/users/login", data);
+            const { accessToken: newAccessToken, user: userData } =
+                response.data.data;
+            setAccessToken(newAccessToken);
+            localStorage.setItem("accessToken", newAccessToken);
+            setUser(userData);
+            toast.success("Logged in successfully");
+
+            // Fetch theme after login
+            try {
+                const themeRes = await api.get("/users/theme");
+                const isDark = themeRes.data.data.prefferedTheme === "dark"; // Fix typo to match API
+                const newTheme = isDark ? "dark" : "light";
+                setTheme(newTheme);
+                localStorage.setItem("theme", newTheme);
+                document.documentElement.classList.toggle(
+                    "dark",
+                    newTheme === "dark"
+                );
+            } catch (e) {
+                console.log("Error fetching theme", e);
             }
-        });
-        setUser(prev => ({ ...prev, coverImage: response.data.data.coverImage }));
-        toast.success("Cover image updated");
-    } catch (error) {
-        toast.error("Failed to update cover image");
-    }
-  }
 
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    updateCoverImage,
-    api // Expose api instance for other components to use
-  };
+            return true;
+        } catch (error) {
+            console.error("Login error", error);
+            // Throw error to be handled by component
+            throw error;
+        }
+    };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+    const register = async (formData) => {
+        try {
+            await api.post("/users/register", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            toast.success("Registration successful! Please login.");
+            return true;
+        } catch (error) {
+            console.error("Register error", error);
+            throw error;
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await api.post("/users/logout");
+        } catch (error) {
+            console.error("Logout error", error);
+        } finally {
+            setAccessToken(null);
+            localStorage.removeItem("accessToken");
+            setUser(null);
+            toast.success("Logged out");
+        }
+    };
+
+    const updateCoverImage = async (file) => {
+        try {
+            const formData = new FormData();
+            formData.append("coverImage", file);
+            const response = await api.patch("/users/cover-image", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            setUser((prev) => ({
+                ...prev,
+                coverImage: response.data.data.coverImage,
+            }));
+            toast.success("Cover image updated");
+        } catch (error) {
+            toast.error("Failed to update cover image");
+            throw error;
+        }
+    };
+
+    // ✅ Fixed with useMemo
+    const value = useMemo(() => ({
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        updateCoverImage,
+        theme,
+        toggleTheme,
+        api
+    }), [user, loading, theme]); // Only recreate when these change
+
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 };

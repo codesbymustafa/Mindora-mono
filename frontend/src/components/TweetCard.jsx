@@ -1,37 +1,39 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { AiOutlineLike, AiFillLike } from "react-icons/ai";
+import { HiHandThumbUp, HiOutlineHandThumbUp } from "react-icons/hi2";
+import useFetchUser from '../hooks/useFetchUser';
 
 function TweetCard({ tweet, onLike }) {
+    const { userData: owner } = useFetchUser(tweet.owner);
+
   return (
-    <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="flex gap-3">
             <div className="flex-shrink-0">
                  <img 
-                    src={tweet.owner?.avatar || "https://via.placeholder.com/40"} 
-                    alt={tweet.owner?.username} 
+                    src={owner?.avatar || "https://via.placeholder.com/40"} 
+                    alt={owner?.username} 
                     className="w-10 h-10 rounded-full object-cover"
                 />
             </div>
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">{tweet.owner?.username}</span>
-                    <span className="text-gray-400 text-sm">
+                    <span className="font-semibold text-gray-900 dark:text-white">{owner?.username || "Unknown User"}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">
                         {new Date(tweet.createdAt).toLocaleDateString()}
                     </span>
                 </div>
-                <p className="text-gray-200 mt-2 whitespace-pre-wrap">
+                <p className="text-gray-700 dark:text-gray-200 mt-2 whitespace-pre-wrap">
                     {tweet.content}
                 </p>
-                <div className="flex items-center gap-4 mt-4 text-gray-400">
+                <div className="flex items-center gap-4 mt-4 text-gray-500 dark:text-gray-400">
                     <button 
                         onClick={() => onLike(tweet._id)}
-                        className="flex items-center gap-1 hover:text-purple-500 transition-colors"
+                        className="flex items-center gap-1 hover:text-primary-500 transition-colors"
                     >
-                        {tweet.isLiked ? <AiFillLike className="text-purple-500" /> : <AiOutlineLike />}
+                        {tweet.isLiked ? <HiHandThumbUp className="text-primary-500" /> : <HiOutlineHandThumbUp />}
                         <span>{tweet.likesCount || 0}</span>
                     </button>
-                    {/* Add comment button etc if needed */}
                 </div>
             </div>
         </div>

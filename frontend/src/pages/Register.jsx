@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Input from '../components/Input'
 import Button from '../components/Button'
+import Spinner from '../components/Spinner'
 import { toast } from 'react-hot-toast'
 
 function Register() {
     const navigate = useNavigate()
     const { register } = useAuth()
+    const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
         username: '',
         fullName: '',
@@ -33,25 +35,37 @@ function Register() {
             return
         }
 
+        if (!formData.avatar) {
+            toast.error("Avatar is required")
+            return
+        }
+
+        setLoading(true)
         const data = new FormData()
         data.append('username', formData.username)
         data.append('fullName', formData.fullName)
         data.append('email', formData.email)
         data.append('password', formData.password)
-        if (formData.avatar) data.append('avatar', formData.avatar)
+        data.append('avatar', formData.avatar)
 
-        const success = await register(data)
-        if (success) {
-            navigate('/login')
+        try {
+            const success = await register(data)
+            if (success) {
+                navigate('/login')
+            }
+        } catch (error) {
+            // Error already handled by register function
+        } finally {
+            setLoading(false)
         }
     }
 
   return (
-    <div className="flex items-center justify-center w-full min-h-screen bg-gray-900">
-        <div className={`mx-auto w-full max-w-lg bg-gray-800 rounded-xl p-10 border border-gray-700`}>
+    <div className="flex items-center justify-center w-full min-h-screen bg-gray-900 transition-colors duration-300">
+        <div className={`mx-auto w-full max-w-lg bg-gray-800 rounded-xl p-10 border border-gray-700 shadow-xl`}>
             <div className="mb-2 flex justify-center">
                 <span className="inline-block w-full max-w-[100px]">
-                    <h1 className="text-3xl font-bold text-purple-500">Mindora</h1>
+                    <h1 className="text-3xl font-bold text-primary-500">Mindora</h1>
                 </span>
             </div>
             <h2 className="text-center text-2xl font-bold leading-tight text-white">Sign up to create account</h2>
@@ -59,7 +73,7 @@ function Register() {
                 Already have an account?&nbsp;
                 <Link
                     to="/login"
-                    className="font-medium text-purple-400 transition-all duration-200 hover:underline"
+                    className="font-medium text-primary-400 transition-all duration-200 hover:underline"
                 >
                     Sign In
                 </Link>
@@ -105,15 +119,20 @@ function Register() {
                         onChange={handleChange}
                     />
                     <Input
-                        label="Avatar"
+                        label="Avatar (Required)"
                         type="file"
                         name="avatar"
                         accept="image/*"
                         onChange={handleChange}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                     />
-                    <Button type="submit" className="w-full">
-                        Create Account
+                    <Button type="submit" disabled={loading} className="w-full bg-primary-600 hover:bg-primary-700 text-white">
+                        {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <Spinner />
+                                Creating account...
+                            </span>
+                        ) : 'Create Account'}
                     </Button>
                 </div>
             </form>

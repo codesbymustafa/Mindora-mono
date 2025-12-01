@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import VideoCard from '../components/VideoCard'
 import TweetCard from '../components/TweetCard'
@@ -8,21 +9,44 @@ import Loader from '../components/Loader'
 
 function Home() {
     const { api } = useAuth()
+    const location = useLocation()
     const [videos, setVideos] = useState([])
     const [tweets, setTweets] = useState([])
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState('videos')
+    
+    // Determine active tab based on URL
+    const activeTab = location.pathname === '/tweets' ? 'tweets' : 'videos'
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true)
             try {
+                // Fetch both initially, or optimize to fetch only what's needed based on tab
+                // For now, fetching both as per original design
                 const [videosRes, tweetsRes] = await Promise.all([
                     api.get('/videos/'),
                     api.get('/tweets/')
                 ])
-                setVideos(videosRes.data.data.docs || videosRes.data.data) // Adjust based on pagination response structure
-                setTweets(tweetsRes.data.data)
+                
+                // Handle Videos Response Structure: 
+                // Doc says: res.data.data.data is the array
+                const videoData = videosRes.data.data?.data || videosRes.data.data?.docs || videosRes.data.data
+                if (Array.isArray(videoData)) {
+                    setVideos(videoData)
+                } else {
+                    console.error("Unexpected video data format:", videosRes.data)
+                    setVideos([])
+                }
+
+                // Handle Tweets Response Structure: 
+                // Doc says: res.data.data is the array
+                const tweetData = tweetsRes.data.data
+                if (Array.isArray(tweetData)) {
+                    setTweets(tweetData)
+                } else {
+                    console.error("Unexpected tweet data format:", tweetsRes.data)
+                    setTweets([])
+                }
             } catch (error) {
                 console.error("Error fetching home data", error)
                 toast.error("Failed to load feed")
@@ -35,7 +59,7 @@ function Home() {
 
     const handleLikeTweet = async (tweetId) => {
         try {
-            await api.post(`/like/toggle/t/${tweetId}`)
+            await api.post(`/like/t/${tweetId}`)
             // Optimistic update or refetch
             setTweets(prev => prev.map(t => {
                 if (t._id === tweetId) {
@@ -60,7 +84,10 @@ function Home() {
         if (!newTweet.trim()) return
         try {
             const res = await api.post('/tweets/', { content: newTweet })
-            setTweets(prev => [res.data.data, ...prev])
+            // Response structure for created tweet: res.data.message (based on doc) or res.data.data
+            // Doc says: res.data.data contains the tweet object
+            const createdTweet = res.data.data
+            setTweets(prev => [createdTweet, ...prev])
             setNewTweet('')
             toast.success("Tweet posted")
         } catch (error) {
@@ -76,18 +103,18 @@ function Home() {
   return (
     <div className="text-white">
         <div className="flex gap-4 mb-6 border-b border-gray-700 pb-2">
-            <button 
+            <Link 
+                to="/videos"
                 className={`px-4 py-2 font-medium ${activeTab === 'videos' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}
-                onClick={() => setActiveTab('videos')}
             >
                 Videos
-            </button>
-            <button 
+            </Link>
+            <Link 
+                to="/tweets"
                 className={`px-4 py-2 font-medium ${activeTab === 'tweets' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}
-                onClick={() => setActiveTab('tweets')}
             >
                 Tweets
-            </button>
+            </Link>
         </div>
 
         {activeTab === 'videos' ? (
@@ -107,6 +134,14 @@ function Home() {
                     <textarea 
                         value={newTweet}
                         onChange={(e) => setNewTweet(e.target.value)}
+                        onKeyDown={(e) => {
+                            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                                e.preventDefault()
+                                if (newTweet.trim()) {
+                                    handleCreateTweet(e)
+                                }
+                            }
+                        }}
                         placeholder="What's on your mind?"
                         className="w-full bg-transparent border-none focus:ring-0 text-white resize-none outline-none"
                         rows="3"

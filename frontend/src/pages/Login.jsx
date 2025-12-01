@@ -3,87 +3,87 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Input from '../components/Input'
 import Button from '../components/Button'
+import Spinner from '../components/Spinner'
+import { toast } from 'react-hot-toast'
 
 function Login() {
     const navigate = useNavigate()
     const { login } = useAuth()
-    const [formData, setFormData] = useState({
-        username: '', // API accepts username or email in 'username' field usually, or separate. API doc says username, email, password.
-        // Wait, API doc for login says body: { username, email, password }. Usually login is username OR email.
-        // Let's assume username for now based on typical flows or check API doc again.
-        // API Doc: POST /users/login Body: { "username": "string", "email": "string", "password": "string" }
-        // It seems it might accept either. I'll send both if user enters email/username in one field?
-        // Or maybe I should just ask for username and password.
-        // Let's stick to username and password for simplicity, or email.
-        email: '',
-        password: ''
-    })
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
-    }
+    const [identifier, setIdentifier] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        // Construct payload. If user entered email in username field, handle that?
-        // For now, I'll just provide fields for username and password.
-        // If API requires email, I might need to ask for it.
-        // Let's assume username is enough if email is empty, or vice versa.
-        const success = await login(formData)
-        if (success) {
+        setError('')
+        setLoading(true)
+        
+        // Determine if identifier is email or username
+        const isEmail = identifier.includes('@')
+        const payload = {
+            password,
+            ...(isEmail ? { email: identifier } : { username: identifier })
+        }
+
+        try {
+            await login(payload)
             navigate('/')
+        } catch (err) {
+            const msg = err.response?.data?.message || "Invalid credentials"
+            setError(msg)
+            toast.error(msg)
+        } finally {
+            setLoading(false)
         }
     }
 
   return (
-    <div className='flex items-center justify-center w-full min-h-screen bg-gray-900'>
-        <div className={`mx-auto w-full max-w-lg bg-gray-800 rounded-xl p-10 border border-gray-700`}>
+    <div className='flex items-center justify-center w-full min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300'>
+        <div className={`mx-auto w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl p-10 border border-gray-200 dark:border-gray-700 shadow-xl`}>
             <div className="mb-2 flex justify-center">
                 <span className="inline-block w-full max-w-[100px]">
-                    {/* Logo placeholder */}
-                    <h1 className="text-3xl font-bold text-purple-500">Mindora</h1>
+                    <h1 className="text-3xl font-bold text-primary-600 dark:text-primary-500">Mindora</h1>
                 </span>
             </div>
-            <h2 className="text-center text-2xl font-bold leading-tight text-white">Sign in to your account</h2>
-            <p className="mt-2 text-center text-base text-gray-400">
+            <h2 className="text-center text-2xl font-bold leading-tight text-gray-900 dark:text-white">Sign in to your account</h2>
+            <p className="mt-2 text-center text-base text-gray-600 dark:text-gray-400">
                 Don&apos;t have any account?&nbsp;
                 <Link
                     to="/register"
-                    className="font-medium text-purple-400 transition-all duration-200 hover:underline"
+                    className="font-medium text-primary-600 dark:text-primary-400 transition-all duration-200 hover:underline"
                 >
                     Sign Up
                 </Link>
             </p>
+            
             <form onSubmit={handleSubmit} className='mt-8'>
                 <div className='space-y-5'>
                     <Input
-                        label="Username"
-                        placeholder="Enter your username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
+                        label="Username or Email"
+                        placeholder="Enter your username or email"
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
                     />
-                    <Input
-                        label="Email" // Optional if API allows login with just username
-                        placeholder="Enter your email"
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                    />
-                    <Input
-                        label="Password"
-                        type="password"
-                        placeholder="Enter your password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
-                    <Button
-                        type="submit"
-                        className="w-full"
-                    >
-                        Sign in
+                    <div>
+                        <Input
+                            label="Password"
+                            type="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                    </div>
+                    
+                    <Button type="submit" disabled={loading} className="w-full bg-primary-600 hover:bg-primary-700 text-white">
+                        {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <Spinner />
+                                Signing in...
+                            </span>
+                        ) : 'Sign in'}
                     </Button>
                 </div>
             </form>

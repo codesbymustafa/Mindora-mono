@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { AiOutlinePlus, AiOutlineDelete, AiOutlineCamera } from "react-icons/ai";
+import { HiPlus, HiTrash, HiCamera } from "react-icons/hi2";
 import Button from '../components/Button'
 import Input from '../components/Input'
 import { toast } from 'react-hot-toast'
 import Loader from '../components/Loader'
-import defaultCover from '../assets/plufow-le-studio-loq_SHCuEyg-unsplash.jpg'
+import defaultCover from '../assets/defaultCover.jpg'
+import VideoUploadModal from '../components/VideoUploadModal'
 
 function Dashboard() {
     const { api, user, updateCoverImage } = useAuth()
@@ -13,13 +14,7 @@ function Dashboard() {
     const [videos, setVideos] = useState([])
     const [loading, setLoading] = useState(true)
     const [showUploadModal, setShowUploadModal] = useState(false)
-    const [uploading, setUploading] = useState(false)
-    
-    // Upload Form State
-    const [videoFile, setVideoFile] = useState(null)
-    const [thumbnail, setThumbnail] = useState(null)
-    const [title, setTitle] = useState('')
-    const [description, setDescription] = useState('')
+    const [uploadingCover, setUploadingCover] = useState(false)
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -30,10 +25,10 @@ function Dashboard() {
                     api.get('/dashboard/videos')
                 ])
                 setStats(statsRes.data.data)
-                setVideos(videosRes.data.data)
+                const videosData = videosRes.data.data;
+                setVideos(Array.isArray(videosData) ? videosData : [])
             } catch (error) {
                 console.error("Error fetching dashboard data", error)
-                toast.error("Failed to load dashboard")
             } finally {
                 setLoading(false)
             }
@@ -44,50 +39,25 @@ function Dashboard() {
     const handleCoverImageChange = async (e) => {
         const file = e.target.files[0]
         if (file) {
+            setUploadingCover(true)
             try {
                 await updateCoverImage(file)
-                // user state is updated in context, so UI should reflect change automatically if using user.coverImage
+                toast.success('Cover image updated!')
             } catch (error) {
                 console.error("Error updating cover image", error)
+            } finally {
+                setUploadingCover(false)
             }
         }
     }
 
-    const handleUpload = async (e) => {
-        e.preventDefault()
-        if (!videoFile || !thumbnail || !title || !description) {
-            toast.error("All fields are required")
-            return
-        }
-
-        setUploading(true)
-        const formData = new FormData()
-        formData.append('videoFile', videoFile)
-        formData.append('thumbnail', thumbnail)
-        formData.append('title', title)
-        formData.append('description', description)
-
+    const handleVideoUploaded = async () => {
+        // Refresh videos list after upload
         try {
-            await api.post('/videos/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            })
-            toast.success("Video uploaded successfully")
-            setShowUploadModal(false)
-            // Refresh videos
             const videosRes = await api.get('/dashboard/videos')
-            setVideos(videosRes.data.data)
-            // Reset form
-            setTitle('')
-            setDescription('')
-            setVideoFile(null)
-            setThumbnail(null)
+            setVideos(videosRes.data.data || [])
         } catch (error) {
-            console.error("Error uploading video", error)
-            toast.error("Failed to upload video")
-        } finally {
-            setUploading(false)
+            console.error("Error refreshing videos", error)
         }
     }
 
@@ -131,11 +101,18 @@ function Dashboard() {
                 className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <label className="cursor-pointer bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full flex items-center gap-2 transition-colors">
-                    <AiOutlineCamera />
-                    <span>Change Cover</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleCoverImageChange} />
-                </label>
+                {uploadingCover ? (
+                    <div className="bg-black/70 text-white px-6 py-3 rounded-full flex items-center gap-2">
+                        <Loader />
+                        <span>Uploading...</span>
+                    </div>
+                ) : (
+                    <label className="cursor-pointer bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full flex items-center gap-2 transition-colors">
+                        <HiCamera />
+                        <span>Change Cover</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleCoverImageChange} />
+                    </label>
+                )}
             </div>
             <div className="absolute bottom-4 left-4 flex items-end gap-4">
                  <img 
@@ -152,37 +129,37 @@ function Dashboard() {
 
         <div className="flex justify-between items-center mb-8">
             <div>
-                <h2 className="text-2xl font-bold text-white">Dashboard Stats</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Stats</h2>
             </div>
             <Button onClick={() => setShowUploadModal(true)} className="flex items-center gap-2">
-                <AiOutlinePlus /> Upload Video
+                <HiPlus /> Upload Video
             </Button>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h3 className="text-gray-400 text-sm font-medium">Total Views</h3>
-                <p className="text-3xl font-bold text-white mt-2">{stats?.totalViews || 0}</p>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Views</h3>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats?.totalViewsGotCount || 0}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h3 className="text-gray-400 text-sm font-medium">Subscribers</h3>
-                <p className="text-3xl font-bold text-white mt-2">{stats?.subscribersCount || 0}</p>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Subscribers</h3>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats?.subscribersCount || 0}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h3 className="text-gray-400 text-sm font-medium">Total Videos</h3>
-                <p className="text-3xl font-bold text-white mt-2">{stats?.totalVideos || 0}</p>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Videos</h3>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats?.totalVideosCount || 0}</p>
             </div>
         </div>
 
         {/* Videos List */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-            <div className="p-6 border-b border-gray-700">
-                <h2 className="text-xl font-bold text-white">Your Videos</h2>
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Videos</h2>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-900/50 text-gray-400 text-sm uppercase">
+                    <thead className="bg-gray-100 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 text-sm uppercase">
                         <tr>
                             <th className="px-6 py-3">Video</th>
                             <th className="px-6 py-3">Status</th>
@@ -190,30 +167,30 @@ function Dashboard() {
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-700">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {videos.map(video => (
-                            <tr key={video._id} className="hover:bg-gray-700/50">
+                            <tr key={video._id} className="hover:bg-gray-100 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
                                         <img src={video.thumbnail} alt="" className="w-16 h-9 object-cover rounded" />
-                                        <span className="font-medium text-white line-clamp-1">{video.title}</span>
+                                        <span className="font-medium text-gray-900 dark:text-white line-clamp-1">{video.title}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <button 
                                         onClick={() => handleTogglePublish(video._id)}
-                                        className={`px-2 py-1 rounded-full text-xs font-medium ${video.isPublished ? 'bg-green-900/50 text-green-400' : 'bg-yellow-900/50 text-yellow-400'}`}
+                                        className={`px-2 py-1 rounded-full text-xs font-medium ${video.isPublished ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400'}`}
                                     >
                                         {video.isPublished ? 'Published' : 'Draft'}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 text-gray-400 text-sm">
+                                <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-sm">
                                     {new Date(video.createdAt).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2">
                                         <button onClick={() => handleDeleteVideo(video._id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                                            <AiOutlineDelete size={20} />
+                                            <HiTrash size={20} />
                                         </button>
                                     </div>
                                 </td>
@@ -229,57 +206,11 @@ function Dashboard() {
             </div>
         </div>
 
-        {/* Upload Modal */}
-        {showUploadModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-                <div className="bg-gray-800 w-full max-w-lg rounded-xl p-6 border border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4">Upload Video</h2>
-                    <form onSubmit={handleUpload} className="space-y-4">
-                        <Input 
-                            label="Title" 
-                            value={title} 
-                            onChange={(e) => setTitle(e.target.value)} 
-                            placeholder="Video title"
-                        />
-                        <div>
-                            <label className="block text-gray-300 mb-1 text-sm">Description</label>
-                            <textarea 
-                                value={description} 
-                                onChange={(e) => setDescription(e.target.value)} 
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:border-purple-500 outline-none h-24"
-                                placeholder="Video description"
-                            />
-                        </div>
-                        <Input 
-                            label="Thumbnail" 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => setThumbnail(e.target.files[0])}
-                            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                        />
-                        <Input 
-                            label="Video File" 
-                            type="file" 
-                            accept="video/*"
-                            onChange={(e) => setVideoFile(e.target.files[0])}
-                            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                        />
-                        <div className="flex justify-end gap-3 mt-6">
-                            <Button 
-                                type="button" 
-                                onClick={() => setShowUploadModal(false)}
-                                className="bg-transparent border border-gray-600 hover:bg-gray-700"
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={uploading}>
-                                {uploading ? 'Uploading...' : 'Upload'}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        )}
+        <VideoUploadModal 
+            isOpen={showUploadModal} 
+            onClose={() => setShowUploadModal(false)}
+            onUploadSuccess={handleVideoUploaded}
+        />
     </div>
   )
 }
