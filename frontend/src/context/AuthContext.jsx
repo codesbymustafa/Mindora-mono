@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
 
     const apiRef = useRef(null);
     if (!apiRef.current) {
-        apiRef.current = axios.create({ baseURL: "/api/v1" });
+        apiRef.current = axios.create({ baseURL: import.meta.env.VITE_API_URL });
         apiRef.current.interceptors.request.use((config) => {
             const token = localStorage.getItem("accessToken"); // Always fresh
             if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -91,8 +91,6 @@ export const AuthProvider = ({ children }) => {
             await api.patch("/users/theme");
         } catch (error) {
             console.error("Error syncing theme with backend", error);
-            // Optional: Revert if sync is critical, but for theme it's usually fine to keep local preference
-            // toast.error("Failed to sync theme preference");
         }
     };
 
@@ -189,7 +187,7 @@ export const AuthProvider = ({ children }) => {
         theme,
         toggleTheme,
         api
-    }), [user, loading, theme]); // Only recreate when these change
+    }), [user, loading, theme]); 
 
     return (
         <AuthContext.Provider value={value}>
