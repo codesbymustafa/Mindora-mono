@@ -169,8 +169,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
   let uploadedThumbnail;
 
   // upload video to cloudinary
-  if (videoFile.path) {
-    uploadedVideo = await uploadToCloudinary(videoFile.path, "videos");
+  if (videoFile.buffer) {
+    uploadedVideo = await uploadToCloudinary(videoFile.buffer, "videos");
 
     if (!uploadedVideo || !uploadedVideo.url)
       throw new ApiError(500, "Error uploading video");
@@ -178,8 +178,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     logger.info("video Uploaded");
   }
 
-  if (thumbnail?.path) {
-    uploadedThumbnail = await uploadToCloudinary(thumbnail.path, "thumbnail");
+  if (thumbnail?.buffer) {
+    uploadedThumbnail = await uploadToCloudinary(thumbnail.buffer, "thumbnail");
 
     if (!uploadedThumbnail || !uploadedThumbnail.url) {
       throw new ApiError(500, "Error uploading thumbnail");
@@ -304,8 +304,8 @@ const updateVideo = asyncHandler(async (req, res) => {
         console.error("Error deleting old thumbnail from Cloudinary", error);
       }
 
-      newThumbnail = await uploadToCloudinary(thumbnailFile.path, "thumbnails")
-        .url;
+      newThumbnail = await uploadToCloudinary(thumbnailFile.buffer, "thumbnails").url;
+      
     } catch (error) {
       console.error("Error uploading thumbnail to Cloudinary", error);
       throw new ApiError(500, "Error uploading thumbnail");

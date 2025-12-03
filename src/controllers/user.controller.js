@@ -45,8 +45,8 @@ const registerUser = asyncHandler(async (req , res) => {
         $or: [{username} , {email}]
     })
 
-    const avatarPath = req.files?.avatar?.[0].path;
-    const coverImagePath = req.files?.coverImage?.[0].path;
+    const avatarPath = req.files?.avatar?.[0].buffer;
+    const coverImagePath = req.files?.coverImage?.[0].buffer;
 
     if(existedUser){
         if( avatarPath )fs.unlinkSync(avatarPath)
@@ -315,7 +315,7 @@ const updateAccountDetails = asyncHandler(async (req , res) => {
 
 const updateUserAvatar = asyncHandler(async (req , res) => {
 
-    const avatarPath = req.file?.path;
+    const avatarPath = req.file?.buffer;
 
     if(!avatarPath){
         throw new ApiError(400 , "Avatar file is required")
@@ -350,7 +350,7 @@ const updateUserAvatar = asyncHandler(async (req , res) => {
 
 const updateUserCoverImage = asyncHandler(async (req , res) => {
 
-    const CoverImagePath = req.file?.path;
+    const CoverImagePath = req.file?.buffer;
 
     if(!CoverImagePath){
         throw new ApiError(400 , "Cover Image file is required")

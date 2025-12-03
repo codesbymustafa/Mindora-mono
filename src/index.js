@@ -13,7 +13,7 @@ const PORT = process.env.PORT;
 
 connectDB()
 .then(() => {
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0" , () => {
         if(process.env.NODE_ENV !== 'TEST')
         logger.info(`Server is running on port ${PORT}`);
     });

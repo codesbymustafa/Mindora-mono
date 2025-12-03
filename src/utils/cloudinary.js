@@ -1,7 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 import dotenv from "dotenv";
 import logger from "./logger.js";
+import streamifier from "streamifier";
+
 
 dotenv.config()
 // Configuration
@@ -11,23 +12,32 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadToCloudinary = async (filePath) => {
-  try {
-    if (!filePath) return null;
+const options = {
+  folder : "Mindora",
+  resource_type: "auto",
+}
 
-    const result = await cloudinary.uploader.upload(filePath, {
-      resource_type: "auto",
-    });
+const uploadToCloudinary = async (fileBuffer) => {
+  
+  if(!fileBuffer) return null;
 
-    logger.info("file uploaded successfully", result.url);
+  return new Promise((resolve, reject) => {
 
-    fs.unlinkSync(filePath);
-    return result;
-  } catch (error) {
-    console.error("Error uploading file to Cloudinary", error);
-    fs.unlinkSync(filePath);
-    return null;
-  }
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error) {
+            logger.error("Cloudinary upload failed", error);
+            return reject(error);
+        }
+        
+        logger.info("Cloudinary upload success", result.url);
+        resolve(result);
+      }
+    );
+
+    streamifier.createReadStream(fileBuffer).pipe(stream);
+  })
 };
 
 const deleteFromCloudinary = async (publicId , type) => {

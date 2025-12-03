@@ -3471,3 +3471,60 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-02T17:19:54.355Z"}
 {"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-02T17:19:56.335Z"}
 {"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-02T17:19:56.341Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/users/login\",\"status\":\"204\",\"responseTime\":\"2.714\"}","timestamp":"2025-12-02T17:42:15.330Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"POST\",\"url\":\"/api/v1/users/login\",\"status\":\"200\",\"responseTime\":\"525.082\"}","timestamp":"2025-12-02T17:42:15.860Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/users/theme\",\"status\":\"204\",\"responseTime\":\"0.266\"}","timestamp":"2025-12-02T17:42:15.872Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/users/current-user\",\"status\":\"204\",\"responseTime\":\"0.327\"}","timestamp":"2025-12-02T17:42:15.970Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/users/theme\",\"status\":\"200\",\"responseTime\":\"49.945\"}","timestamp":"2025-12-02T17:42:16.006Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/users/current-user\",\"status\":\"200\",\"responseTime\":\"79.147\"}","timestamp":"2025-12-02T17:42:16.061Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/users/theme\",\"status\":\"304\",\"responseTime\":\"77.734\"}","timestamp":"2025-12-02T17:42:16.219Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/notifications/unread-count\",\"status\":\"204\",\"responseTime\":\"0.243\"}","timestamp":"2025-12-02T17:42:16.241Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/videos/\",\"status\":\"204\",\"responseTime\":\"0.389\"}","timestamp":"2025-12-02T17:42:16.247Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/tweets/\",\"status\":\"204\",\"responseTime\":\"0.449\"}","timestamp":"2025-12-02T17:42:16.252Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/videos/\",\"status\":\"200\",\"responseTime\":\"111.423\"}","timestamp":"2025-12-02T17:42:16.366Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/tweets/\",\"status\":\"200\",\"responseTime\":\"114.408\"}","timestamp":"2025-12-02T17:42:16.371Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/notifications/unread-count\",\"status\":\"200\",\"responseTime\":\"119.192\"}","timestamp":"2025-12-02T17:42:16.373Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T04:38:31.263Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T04:38:31.269Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T04:38:32.312Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T04:38:32.318Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T04:42:17.875Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T04:42:17.879Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-02.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T04:42:19.144Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T04:42:19.150Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"POST\",\"url\":\"/api/v1/users/login\",\"status\":\"200\",\"responseTime\":\"613.123\"}","timestamp":"2025-12-03T04:42:37.992Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T04:43:32.023Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T04:43:32.028Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-00.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T04:43:33.186Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T04:43:33.192Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T04:44:10.696Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T04:44:10.701Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-00.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T04:44:11.789Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T04:44:11.794Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T04:47:05.192Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T04:47:05.196Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T04:47:06.092Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T04:47:06.098Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T06:38:39.261Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T06:38:39.265Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T06:38:40.152Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T06:38:40.159Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"file deleted successfully from Cloudinary","result":"not found","timestamp":"2025-12-03T06:38:59.277Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Cloudinary upload success","timestamp":"2025-12-03T06:39:06.033Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T06:40:16.656Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T06:40:16.659Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T06:40:17.618Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T06:40:17.624Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"file deleted successfully from Cloudinary","result":"not found","timestamp":"2025-12-03T06:40:23.352Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Cloudinary upload success","timestamp":"2025-12-03T06:40:31.747Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"PATCH\",\"url\":\"/api/v1/users/cover-image\",\"status\":\"200\",\"responseTime\":\"10100.945\"}","timestamp":"2025-12-03T06:40:31.855Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T06:41:25.986Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T06:41:25.991Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T06:41:27.153Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T06:41:27.158Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T06:41:48.683Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T06:41:48.687Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-03T06:41:50.789Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-03T06:41:50.793Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-02.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-03T06:41:51.938Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-03T06:41:51.944Z"}
