@@ -73,53 +73,7 @@ Mindora is **live and deployed** at [mindora-amber.vercel.app](https://mindora-a
 
 No installation needed - just visit the site and start learning or teaching!
 
-## Local Development
-
-Want to contribute? Here's how to set up the project locally:
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/codesbymustafa/Mindora.git
-   cd Mindora
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-3. **Set up environment variables**
-   
-   Create `.env` files with your configuration (see `.env.example` if available)
-
-4. **Run the development servers**
-   ```bash
-   npm run dev        # Backend
-   cd frontend && npm run dev  # Frontend
-   ```
-
 ---
-
-## API Documentation
-
-Mindora provides a comprehensive RESTful API. For detailed API documentation, see [`APIDoc.md`](./APIDoc.md).
-
-### Main API Endpoints
-
-- **Health Check**: `GET /api/v1/healthcheck`
-- **Users**: `POST /api/v1/users/register`, `POST /api/v1/users/login`
-- **Videos**: `GET /api/v1/videos`, `POST /api/v1/videos`
-- **Tweets**: `GET /api/v1/tweets`, `POST /api/v1/tweets`
-- **Comments**: `GET /api/v1/comments/:videoId`, `POST /api/v1/comments/:videoId`
-- **Likes**: `POST /api/v1/likes/toggle/v/:videoId`
-- **Subscriptions**: `POST /api/v1/subscriptions/c/:channelId`
-- **Playlists**: `GET /api/v1/playlists`, `POST /api/v1/playlists`
-
----
-
 ## Project Structure
 
 ```
@@ -132,37 +86,10 @@ Mindora/
 │   │   └── App.jsx        # Main app component
 │   ├── public/            # Static assets
 │   └── package.json       # Frontend dependencies
-├── backend/               # Express backend (if separate)
-│   ├── controllers/       # Route controllers
-│   ├── models/            # MongoDB models
-│   ├── routes/            # API routes
-│   ├── middleware/        # Custom middleware
-│   └── utils/             # Helper functions
 ├── APIDoc.md              # Complete API documentation
 ├── LICENSE                # MIT License
 └── README.md              # This file
 ```
-
----
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/AmazingFeature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add some AmazingFeature'
-   ```
-4. **Push to the branch**
-   ```bash
-   git push origin feature/AmazingFeature
-   ```
-5. **Open a Pull Request**
 
 ---
 
@@ -182,12 +109,10 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 
 ## Acknowledgments
 
-- Thanks to all contributors who help improve Mindora
 - Built with love for the learning community
 
 ---
 
 <div align="center">
   <p>Made with love by Mustafa Koser</p>
-  <p>Star this repo if you find it helpful!</p>
 </div>
