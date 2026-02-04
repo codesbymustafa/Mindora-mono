@@ -3635,3 +3635,7 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"GET\",\"url\":\"/api/v1/videos/\",\"status\":\"304\",\"responseTime\":\"85.513\"}","timestamp":"2025-12-11T14:23:41.038Z"}
 {"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"OPTIONS\",\"url\":\"/api/v1/users/logout\",\"status\":\"204\",\"responseTime\":\"0.183\"}","timestamp":"2025-12-11T14:23:43.373Z"}
 {"level":"\u001b[32minfo\u001b[39m","message":"{\"method\":\"POST\",\"url\":\"/api/v1/users/logout\",\"status\":\"200\",\"responseTime\":\"187.144\"}","timestamp":"2025-12-11T14:23:43.563Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Environment variables loaded from .env file","timestamp":"2025-12-11T14:25:11.842Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connecting to the database...","timestamp":"2025-12-11T14:25:11.846Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Connected to the database successfully \n Database Name: vidtube \n Host: ac-umfmukq-shard-00-01.vu6akeu.mongodb.net \n Port: 27017","timestamp":"2025-12-11T14:25:12.896Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Server is running on port 3000","timestamp":"2025-12-11T14:25:12.901Z"}

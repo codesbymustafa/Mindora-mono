@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser  from 'cookie-parser'
 import morgan from "morgan";
 import logger from "./utils/logger.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -63,5 +64,8 @@ app.use("/api/v1/like", likeRoutes);
 app.use("/api/v1/like", likeRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+
+// Error handler must be last
+app.use(errorHandler);
 
 export {app}
