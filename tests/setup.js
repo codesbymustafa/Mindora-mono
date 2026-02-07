@@ -1,4 +1,6 @@
 // Set test environment variable
+import {jest , afterAll} from "@jest/globals";
+
 process.env.NODE_ENV = "TEST";
 
 // Set required environment variables for testing
@@ -14,4 +16,5 @@ jest.setTimeout(30000);
 // Global teardown
 afterAll(async () => {
     // Add any global cleanup here if needed
+    process.env.NODE_ENV = "DEVELOPMENT";
 });
