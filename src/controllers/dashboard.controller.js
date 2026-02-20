@@ -9,17 +9,17 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import { Comment } from "../models/comment.model.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
-    // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
+
 
     const channelId = req.user._id;
 
-    //subscribers count
+ 
     const subscribersCount = await Subscription.countDocuments({ channel: channelId });
 
-    //total videos count
+
     const totalVideosCount = await Video.countDocuments({ owner: channelId });
 
-    //total views count
+ 
     const totalViewsAggregation = await Video.aggregate([
 
         {
@@ -43,7 +43,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
     const totalViewsGotCount = totalViewsAggregation.length > 0 ? totalViewsAggregation[0].totalViews : 0;
 
-    //total likes count
+
     const totalLikesAggregation = await Like.aggregate([
         {
             $lookup: {
@@ -89,7 +89,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
 })
 
 const getChannelVideos = asyncHandler(async (req, res) => {
-    // TODO: Get all the videos uploaded by the channel
+   
     const channelId = req.user._id;
 
     if(!mongoose.isValidObjectId(channelId)) {

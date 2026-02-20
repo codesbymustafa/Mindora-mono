@@ -8,6 +8,7 @@ import mongoose, { isValidObjectId } from "mongoose";
 import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
 import fs from "fs";
+import { log } from "console";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -195,7 +196,10 @@ const logoutUser = asyncHandler(async (req , res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req , res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    
+    
+    const incomingRefreshToken = req.cookies?.refreshToken || 
+    req.body?.refreshToken ;
 
     if(!incomingRefreshToken){
         throw new ApiError(401 , "Unauthorized request")

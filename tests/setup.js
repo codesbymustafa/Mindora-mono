@@ -1,5 +1,7 @@
 // Set test environment variable
-import {jest , afterAll} from "@jest/globals";
+import {jest , afterAll ,beforeAll } from "@jest/globals";
+import mongoose from "mongoose";
+import { DB_NAME } from "../src/constants.js";
 
 process.env.NODE_ENV = "TEST";
 
@@ -13,8 +15,14 @@ process.env.CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 // Increase Jest timeout for database operations
 jest.setTimeout(30000);
 
-// Global teardown
+beforeAll(async () => {
+    // Connect to test database
+    const mongoUri = process.env.MONGODB_URI + "/" + DB_NAME + "_test" ;
+    await mongoose.connect(mongoUri);
+    // console.log("Connected to test database");
+});
+
 afterAll(async () => {
-    // Add any global cleanup here if needed
-    process.env.NODE_ENV = "DEVELOPMENT";
+    // Clean up and close connection
+    await mongoose.connection.close();
 });
