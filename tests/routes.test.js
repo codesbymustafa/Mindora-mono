@@ -2368,7 +2368,7 @@ describe("Tweet API Endpoints", () => {
             expect(response.body.data).toHaveProperty("isLikedByUser");
             expect(response.body.data.likes).toBe(1);
             expect(response.body.data.owner.username).toBe("subscriber");
-            expect(response.body.data.isLikedByUser).toBe(false);
+            expect(response.body.data.isLikedByUser).toBe(true);
         });
     });
 
@@ -2711,6 +2711,379 @@ describe("Comment API Endpoints", () => {
 
             expect(response.body.message).toBe("Comment deleted successfully");
             const deleted = await Comment.findById(comment._id);
+            expect(deleted).toBeNull();
+        });
+    });
+});
+
+describe("Like API Endpoints", () => {
+    describe("POST/GET /api/v1/like/v/:videoId", () => {
+        it("should return 401 if token is missing", async () => {
+            await request(app).post("/api/v1/like/v/invalid-id").expect(401);
+        });
+
+        it("should return 400 for invalid video id", async () => {
+            const response = await request(app)
+                .post("/api/v1/like/v/invalid-id")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(400);
+
+            expect(response.body.message).toBe("Invalid video ID");
+        });
+
+        it("should like and unlike a video", async () => {
+            const video = await Video.create({
+                videoFile: SAMPLE_VIDEO_URLS[5],
+                thumbnail: imageUrl(81),
+                title: "Like Video",
+                description: "desc",
+                duration: 120,
+                owner: testUser2._id,
+            });
+
+            const likeRes = await request(app)
+                .post(`/api/v1/like/v/${video._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(likeRes.body.message).toBe("Video liked successfully");
+            expect(likeRes.body.data.totalLikes).toBe(1);
+            expect(likeRes.body.data.isLikedbyUser).toBe(true);
+
+            const unlikeRes = await request(app)
+                .post(`/api/v1/like/v/${video._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(unlikeRes.body.message).toBe("Video unliked successfully");
+            expect(unlikeRes.body.data.totalLikes).toBe(0);
+            expect(unlikeRes.body.data.isLikedbyUser).toBe(false);
+        });
+
+        it("should return current video like stats", async () => {
+            const video = await Video.create({
+                videoFile: SAMPLE_VIDEO_URLS[6],
+                thumbnail: imageUrl(82),
+                title: "Stats Video",
+                description: "desc",
+                duration: 130,
+                owner: testUser2._id,
+            });
+
+            await Like.create({ video: video._id, likedBy: testUser._id });
+
+            const response = await request(app)
+                .get(`/api/v1/like/v/${video._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Video likes fetched successfully");
+            expect(response.body.data.totalLikes).toBe(1);
+            expect(response.body.data.isLikedbyUser).toBe(true);
+        });
+    });
+
+    describe("POST/GET /api/v1/like/c/:commentId", () => {
+        it("should return 400 for invalid comment id", async () => {
+            const response = await request(app)
+                .post("/api/v1/like/c/invalid-id")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(400);
+
+            expect(response.body.message).toBe("Invalid comment ID");
+        });
+
+        it("should like and unlike a comment", async () => {
+            const video = await Video.create({
+                videoFile: SAMPLE_VIDEO_URLS[7],
+                thumbnail: imageUrl(83),
+                title: "Comment Video",
+                description: "desc",
+                duration: 90,
+                owner: testUser._id,
+            });
+            const comment = await Comment.create({
+                content: "Comment",
+                owner: testUser2._id,
+                video: video._id,
+            });
+
+            const likeRes = await request(app)
+                .post(`/api/v1/like/c/${comment._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(likeRes.body.message).toBe("Comment liked successfully");
+            expect(likeRes.body.data.totalLikes).toBe(1);
+
+            const unlikeRes = await request(app)
+                .post(`/api/v1/like/c/${comment._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(unlikeRes.body.message).toBe("Comment unliked successfully");
+            expect(unlikeRes.body.data.totalLikes).toBe(0);
+        });
+
+        it("should return comment like stats", async () => {
+            const video = await Video.create({
+                videoFile: SAMPLE_VIDEO_URLS[8],
+                thumbnail: imageUrl(84),
+                title: "Comment Stats Video",
+                description: "desc",
+                duration: 90,
+                owner: testUser._id,
+            });
+            const comment = await Comment.create({
+                content: "Comment",
+                owner: testUser2._id,
+                video: video._id,
+            });
+            await Like.create({ comment: comment._id, likedBy: testUser._id });
+
+            const response = await request(app)
+                .get(`/api/v1/like/c/${comment._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Comment likes fetched successfully");
+            expect(response.body.data.totalLikes).toBe(1);
+            expect(response.body.data.isLikedbyUser).toBe(true);
+        });
+    });
+
+    describe("POST/GET /api/v1/like/t/:tweetId", () => {
+        it("should return 400 for invalid tweet id", async () => {
+            const response = await request(app)
+                .post("/api/v1/like/t/invalid-id")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(400);
+
+            expect(response.body.message).toBe("Invalid tweet ID");
+        });
+
+        it("should like and unlike a tweet", async () => {
+            const tweet = await Tweet.create({ content: "Tweet like", owner: testUser2._id });
+
+            const likeRes = await request(app)
+                .post(`/api/v1/like/t/${tweet._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(likeRes.body.message).toBe("Tweet liked successfully");
+            expect(likeRes.body.data.totalLikes).toBe(1);
+
+            const unlikeRes = await request(app)
+                .post(`/api/v1/like/t/${tweet._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(unlikeRes.body.message).toBe("Tweet unliked successfully");
+            expect(unlikeRes.body.data.totalLikes).toBe(0);
+        });
+
+        it("should return tweet like stats", async () => {
+            const tweet = await Tweet.create({ content: "Tweet stats", owner: testUser2._id });
+            await Like.create({ tweet: tweet._id, likedBy: testUser._id });
+
+            const response = await request(app)
+                .get(`/api/v1/like/t/${tweet._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Tweet likes fetched successfully");
+            expect(response.body.data.totalLikes).toBe(1);
+            expect(response.body.data.isLikedbyUser).toBe(true);
+        });
+    });
+
+    describe("GET /api/v1/like/videos", () => {
+        it("should return liked videos for current user", async () => {
+            const video = await Video.create({
+                videoFile: SAMPLE_VIDEO_URLS[9],
+                thumbnail: imageUrl(85),
+                title: "Liked Video",
+                description: "desc",
+                duration: 100,
+                owner: testUser2._id,
+            });
+            await Like.create({ video: video._id, likedBy: testUser._id });
+
+            const response = await request(app)
+                .get("/api/v1/like/videos")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Liked videos fetched successfully");
+            expect(response.body.data.likedVideos).toHaveLength(1);
+            expect(response.body.data.likedVideos[0].title).toBe("Liked Video");
+        });
+    });
+});
+
+describe("Notification API Endpoints", () => {
+    describe("GET /api/v1/notifications", () => {
+        it("should return 401 if token is missing", async () => {
+            await request(app).get("/api/v1/notifications").expect(401);
+        });
+
+        it("should return notifications with pagination data", async () => {
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "You got a new subscriber",
+            });
+
+            const response = await request(app)
+                .get("/api/v1/notifications?page=1&limit=10")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Notifications fetched successfully");
+            expect(response.body.data.notifications).toHaveLength(1);
+            expect(response.body.data.pagination.page).toBe(1);
+            expect(response.body.data.unreadCount).toBe(1);
+        });
+
+        it("should filter unread notifications only", async () => {
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Unread one",
+                isRead: false,
+            });
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Read one",
+                isRead: true,
+            });
+
+            const response = await request(app)
+                .get("/api/v1/notifications?unreadOnly=true")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.data.notifications).toHaveLength(1);
+            expect(response.body.data.notifications[0].message).toBe("Unread one");
+        });
+    });
+
+    describe("GET /api/v1/notifications/unread-count", () => {
+        it("should return unread count", async () => {
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Unread",
+                isRead: false,
+            });
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Read",
+                isRead: true,
+            });
+
+            const response = await request(app)
+                .get("/api/v1/notifications/unread-count")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Unread count fetched");
+            expect(response.body.data.unreadCount).toBe(1);
+        });
+    });
+
+    describe("PATCH /api/v1/notifications/read", () => {
+        it("should mark selected notifications as read", async () => {
+            const n1 = await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "N1",
+                isRead: false,
+            });
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "N2",
+                isRead: false,
+            });
+
+            const response = await request(app)
+                .patch("/api/v1/notifications/read")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({ notificationIds: [n1._id.toString()] })
+                .expect(200);
+
+            expect(response.body.message).toBe("Notifications marked as read");
+            expect(response.body.data.modifiedCount).toBe(1);
+        });
+
+        it("should mark all unread notifications as read when ids not provided", async () => {
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "N1",
+                isRead: false,
+            });
+            await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "N2",
+                isRead: false,
+            });
+
+            const response = await request(app)
+                .patch("/api/v1/notifications/read")
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({})
+                .expect(200);
+
+            expect(response.body.data.modifiedCount).toBe(2);
+        });
+    });
+
+    describe("DELETE /api/v1/notifications/delete/:notificationId", () => {
+        it("should return 404 if notification does not belong to user", async () => {
+            const notification = await Notification.create({
+                recipient: testUser2._id,
+                sender: testUser._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Other user's notification",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/notifications/delete/${notification._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(404);
+
+            expect(response.body.message).toBe("Notification not found");
+        });
+
+        it("should delete notification successfully", async () => {
+            const notification = await Notification.create({
+                recipient: testUser._id,
+                sender: testUser2._id,
+                type: "NEW_SUBSCRIBER",
+                message: "Delete me",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/notifications/delete/${notification._id}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .expect(200);
+
+            expect(response.body.message).toBe("Notification deleted");
+            const deleted = await Notification.findById(notification._id);
             expect(deleted).toBeNull();
         });
     });

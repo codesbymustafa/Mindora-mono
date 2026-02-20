@@ -9,7 +9,7 @@ import { Like } from "../models/like.model.js";
 import { Notification } from "../models/notification.model.js";
 
 const createTweet = asyncHandler(async (req, res) => {
-    //TODO: create tweet
+    
     const {content } = req.body 
     const userId = req.user._id;
 
@@ -49,7 +49,6 @@ const createTweet = asyncHandler(async (req, res) => {
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
-    // TODO: get user tweets
 
     const {userId} = req.params
 
@@ -71,7 +70,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
-    //TODO: update tweet
+  
     const {tweetId} = req.params
     const {content } = req.body
     const userId = req.user._id
@@ -106,7 +105,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     }}
 )
 const deleteTweet = asyncHandler(async (req, res) => {
-    //TODO: delete tweet
+    
     const {tweetId} = req.params
     const userId = req.user._id
 
@@ -152,21 +151,32 @@ const getTweetById = asyncHandler(async (req, res) => {
     }
 
     try {
-        const tweet = await Tweet.findById(tweetId);
+        const tweet = await Tweet.findById(tweetId).lean();
 
         if (!tweet) {
             throw new ApiError(404, "Tweet not found");
         }
 
-        tweet.owner = await User.findById(tweet.owner).select("_id fullName username avatar");
-
-        tweet.likes = await Like.countDocuments({ tweet: tweet._id });
-
-        tweet.isLikedByUser = await Like.exists({ tweet: tweet._id, user: req.user._id });
+        const [owner, likes, likedDoc] = await Promise.all([
+            User.findById(tweet.owner).select("_id fullName username avatar").lean(),
+            Like.countDocuments({ tweet: tweet._id }),
+            Like.exists({ tweet: tweet._id, likedBy: req.user._id }),
+        ]);
 
         return res
             .status(200)
-            .json(new ApiResponse(200, tweet, "Tweet fetched successfully"));
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        ...tweet,
+                        owner,
+                        likes,
+                        isLikedByUser: Boolean(likedDoc),
+                    },
+                    "Tweet fetched successfully"
+                )
+            );
     } catch (error) {
         throw new ApiError(500, error.message);
     }
