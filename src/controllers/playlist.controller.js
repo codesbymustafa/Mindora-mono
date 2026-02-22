@@ -11,7 +11,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
   //TODO: create playlist
   const userId = req.user._id;
 
-  if (!(isValidObjectId(userId))) {
+  if (!isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid user ID");
   }
   if (!(await User.findById(userId))) {
@@ -36,7 +36,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, playlist , "Playlist created successfully"));
+    .json(new ApiResponse(201, playlist, "Playlist created successfully"));
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
@@ -56,7 +56,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, playlists , "User playlists fetched successfully")
+      new ApiResponse(200, playlists, "User playlists fetched successfully")
     );
 });
 
@@ -72,7 +72,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
   const ids = Array.isArray(playlist.videos) ? playlist.videos : [];
   if (ids.length === 0) {
-    const playlistData = playlist._doc
+    const playlistData = playlist._doc;
 
     return res
       .status(200)
@@ -86,8 +86,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   }
 
   // fetch all videos in one query
-  const videosFound = await Video.find({ _id: { $in: ids } })
-    .select("title thumbnail duration owner createdAt")
+  const videosFound = await Video.find({ _id: { $in: ids } }).select(
+    "title thumbnail duration owner createdAt"
+  );
 
   // preserve playlist order without using map: iterate ids and push matches into a plain array
   const orderedVideos = [];
@@ -97,9 +98,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     if (match) orderedVideos.push(match);
   }
 
-  const playlistData = playlist._doc
+  const playlistData = playlist._doc;
 
-  const playlistWithVideos = { playlistData , videos: orderedVideos };
+  const playlistWithVideos = { playlistData, videos: orderedVideos };
   return res
     .status(200)
     .json(
@@ -115,7 +116,11 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
-  if(!(await Video.findById(videoId))) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this playlist");
+  }
+
+  if (!(await Video.findById(videoId))) {
     throw new ApiError(404, "Video not found");
   }
 
@@ -130,7 +135,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, playlist , "Video added to playlist successfully")
+      new ApiResponse(200, playlist, "Video added to playlist successfully")
     );
 });
 
@@ -142,7 +147,11 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
-  if(!(await Video.findById(videoId))) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this playlist");
+  }
+
+  if (!(await Video.findById(videoId))) {
     throw new ApiError(404, "Video not found");
   }
 
@@ -158,7 +167,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, playlist ,  "Video removed from playlist successfully")
+      new ApiResponse(200, playlist, "Video removed from playlist successfully")
     );
 });
 
@@ -170,13 +179,15 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
-  if(playlist.owner.toString() !== req.user._id.toString()) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not authorized to delete this playlist");
   }
 
   await Playlist.findByIdAndDelete(playlistId);
 
-  res.status(200).json(new ApiResponse(200, null ,"Playlist deleted successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Playlist deleted successfully"));
 });
 
 const updatePlaylist = asyncHandler(async (req, res) => {
@@ -186,6 +197,10 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   const playlist = await Playlist.findById(playlistId);
   if (!playlist) {
     throw new ApiError(404, "Playlist not found");
+  }
+
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this playlist");
   }
 
   if (name.trim() === "") {
@@ -201,7 +216,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, playlist ,"Playlist updated successfully"));
+    .json(new ApiResponse(200, playlist, "Playlist updated successfully"));
 });
 
 export {

@@ -43,7 +43,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
   if (query) {
     const q = query.trim();
     if (q.length) {
-      const regex = new RegExp(q, "i");
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       match.$or = [
         { title: { $regex: regex } },
         { description: { $regex: regex } },
@@ -83,23 +83,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
     }
   );
 
-  if(!(ownerId && isValidObjectId(ownerId) && ownerId === String(req.user?._id))){
-    pipeline.push(
-      {
-        $addFields: {
-          views: { $size: { $ifNull: ["$views", []] } },
-        },
-      }
-    )
+  if (
+    !(ownerId && isValidObjectId(ownerId) && ownerId === String(req.user?._id))
+  ) {
+    pipeline.push({
+      $addFields: {
+        views: { $size: { $ifNull: ["$views", []] } },
+      },
+    });
   }
 
-  pipeline.push(
-    {
-      $sort: {
-        [sortBy]: sortDirection,
-      },
-    }
-  );
+  pipeline.push({
+    $sort: {
+      [sortBy]: sortDirection,
+    },
+  });
 
   const aggregate = Video.aggregate(pipeline);
 
@@ -258,7 +256,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     Like.countDocuments({ video: video._id }),
     Like.exists({ video: video._id, likedBy: req.user?._id }),
   ]);
-  
+
   video.owner = owner;
   video.isUserSubscribed = Boolean(isUserSubscribed);
   video.likes = likes;
@@ -267,7 +265,6 @@ const getVideoById = asyncHandler(async (req, res) => {
 
   // logger.info("Video going:");
   // logger.info(video);
-
 
   return res
     .status(201)
@@ -282,6 +279,10 @@ const updateVideo = asyncHandler(async (req, res) => {
 
   if (!video) {
     throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this video");
   }
 
   const { title, description } = req.body;
@@ -304,8 +305,10 @@ const updateVideo = asyncHandler(async (req, res) => {
         console.error("Error deleting old thumbnail from Cloudinary", error);
       }
 
-      newThumbnail = await uploadToCloudinary(thumbnailFile.buffer, "thumbnails").url;
-      
+      newThumbnail = await uploadToCloudinary(
+        thumbnailFile.buffer,
+        "thumbnails"
+      ).url;
     } catch (error) {
       console.error("Error uploading thumbnail to Cloudinary", error);
       throw new ApiError(500, "Error uploading thumbnail");
@@ -339,6 +342,10 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
   if (!video) {
     throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this video");
   }
 
   const thumbnail = video.thumbnail;
@@ -383,6 +390,10 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
   if (!video) {
     throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this video");
   }
 
   try {

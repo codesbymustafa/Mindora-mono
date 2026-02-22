@@ -14,17 +14,25 @@ import {
   updateUserCoverImage,
   toggleTheme,
   getTheme,
-  getUserById
+  getUserById,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: "Too many requests, please try again later",
+});
 
 //unsecured
 
 //  registerUser ,
 router.route("/register").post(
+  authLimiter,
   upload.fields([
     {
       name: "avatar",
@@ -39,7 +47,7 @@ router.route("/register").post(
 );
 
 //     loginUser ,
-router.route("/login").post(loginUser);
+router.route("/login").post(authLimiter, loginUser);
 
 //secured
 
@@ -78,16 +86,11 @@ router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 router.route("/u/:userId").get(verifyJWT, getUserById);
 
 //     getWatchHistory
-router.route("/history")
-.get(verifyJWT, getWatchHistory)
+router.route("/history").get(verifyJWT, getWatchHistory);
 
-router.route("/history/add/:videoId")
-  .patch(verifyJWT, addToWatchHistory);
+router.route("/history/add/:videoId").patch(verifyJWT, addToWatchHistory);
 
 //     toggleTheme
-router.route("/theme")
-  .get(verifyJWT, getTheme)
-  .patch(verifyJWT, toggleTheme);
-
+router.route("/theme").get(verifyJWT, getTheme).patch(verifyJWT, toggleTheme);
 
 export default router;
