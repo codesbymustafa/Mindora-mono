@@ -1,0 +1,46 @@
+{
+  "name": "mindora",
+  "version": "1.0.0",
+  "description": "upload videos",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "node.js",
+    "mongoose",
+    "express",
+    "mongodb"
+  ],
+  "author": "Mustafa Koser",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "install": "^0.13.0",
+    "jest": "^29.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.2",
+    "mongoose-aggregate-paginate-v2": "^1.1.4",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "npm": "^11.6.1",
+    "streamifier": "^0.0.2",
+    "supertest": "^7.2.2",
+    "winston": "^3.18.3"
+  }
+}
