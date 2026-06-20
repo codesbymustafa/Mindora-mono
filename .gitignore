@@ -8,3 +8,6 @@ Thumbs.db
 
 # logs
 *.log
+
+# test/build artifacts
+coverage
