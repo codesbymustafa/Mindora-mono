@@ -11,3 +11,6 @@ Thumbs.db
 
 # test/build artifacts
 coverage
+cypress/videos
+cypress/screenshots
+cypress/downloads
