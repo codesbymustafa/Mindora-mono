@@ -48,8 +48,14 @@ in-memory database, no services need to be provisioned in CI.
 journeys (register → login, and a wrong-credentials rejection).
 
 E2E needs the **whole stack running**: backend on `:3000` and frontend on
-`:5173`. The frontend reaches the API through the Vite dev-server proxy
-(`/api` → `:3000`), so launch the dev server with `VITE_API_URL=/api/v1`.
+`:5173`. To avoid cross-origin/CORS issues the frontend must reach the API
+through the Vite dev-server proxy (`/api` → `:3000`) rather than calling
+`http://localhost:3000` directly. Point the app at the proxy by creating
+`frontend/.env.development.local` (git-ignored, dev-only):
+
+```
+VITE_API_URL=/api/v1
+```
 
 Run it:
 
@@ -59,8 +65,13 @@ cd Backend && npm run dev
 
 # 2. Frontend + Cypress (in another terminal)
 cd frontend && npm install
-VITE_API_URL=/api/v1 npm run dev      # leave running
-npm run cy:open                        # interactive runner
+npm run dev            # leave running (uses the proxy via .env.development.local)
+npm run cy:open        # interactive runner
 # or headless:
 npm run cy:run
 ```
+
+> Note: the E2E register flow performs a **real** Cloudinary avatar upload and
+> creates a real user (with a unique `cypress_<id>` name each run), so it needs
+> the backend's live credentials. Making E2E fully self-contained (seeded data,
+> no Cloudinary) is a planned follow-up.
