@@ -11,7 +11,7 @@ integration running the backend suite on every push.
 
 ## Backend — Jest + Supertest + in-memory MongoDB
 
-- **188 tests** covering every REST resource (users, videos, comments, likes,
+- **218 tests** covering every REST resource (users, videos, comments, likes,
   playlists, subscriptions, tweets, notifications, dashboard, healthcheck).
 - Each test runs against an **in-memory MongoDB** (`mongodb-memory-server`), so
   the suite is fully isolated, needs no external database, and runs anywhere
@@ -19,9 +19,17 @@ integration running the backend suite on every push.
 - Cases include happy paths plus negative/authorization scenarios: missing or
   expired tokens, invalid ObjectIds, and cross-user access (e.g. deleting a
   resource you don't own returns 403).
-- Coverage: routes, models, and middleware at 100%; overall ~79% line / ~64%
-  branch. Business logic is the priority; infra glue (`index.js`, db connector)
-  is excluded from coverage.
+- Coverage: routes, models, middleware, and the Cloudinary helper at 100%;
+  overall ~88% line / ~75% branch. Business logic is the priority; infra glue
+  (`index.js`, db connector) is excluded from coverage.
+
+The suite is split into three files:
+
+| File | Scope |
+|---|---|
+| `tests/routes.test.js` | REST endpoints against a live in-memory DB |
+| `tests/uploads.test.js` | Upload paths (register with avatar, avatar/cover updates, video publish) with **Cloudinary mocked at the module boundary**, so controller logic runs for real without network calls or credentials |
+| `tests/cloudinary.test.js` | The Cloudinary helper itself, with the **SDK** mocked — stream handling, error propagation, best-effort deletes |
 
 Run it:
 

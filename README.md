@@ -13,7 +13,7 @@ learners to create, share, and grow together.
 ![Stack](https://img.shields.io/badge/stack-MERN-3FB950)
 ![Backend](https://img.shields.io/badge/backend-Node%20%2B%20Express%205-339933)
 ![Frontend](https://img.shields.io/badge/frontend-React%2018%20%2B%20Vite-61DAFB)
-![Tests](https://img.shields.io/badge/tests-188%20passing-success)
+![Tests](https://img.shields.io/badge/tests-218%20passing-success)
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -156,7 +156,7 @@ request shape, and response schema.
 
 ## 🧪 Testing
 
-Mindora is tested across all three layers of the test pyramid — **188 backend
+Mindora is tested across all three layers of the test pyramid — **218 backend
 tests** (Jest + Supertest against an in-memory MongoDB) and **Cypress** E2E flows
 in a real browser, with the backend suite running in CI on every push.
 
